@@ -1,308 +1,395 @@
-const appState = loadProgress();
+:root {
+  --bg-dark: #0b1120;
+  --bg-panel: rgba(15, 23, 42, 0.82);
+  --bg-soft: rgba(30, 41, 59, 0.9);
+  --line: rgba(148, 163, 184, 0.3);
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --gold: #fbbf24;
+  --green: #22c55e;
+  --blue: #38bdf8;
+  --purple: #a78bfa;
+  --red: #ef4444;
+}
 
-function setScreenVisibility() {
-  const screens = document.querySelectorAll('.screen');
-  screens.forEach(screen => screen.classList.remove('active'));
-  const active = document.getElementById('authScreen');
-  if (appState.username && document.getElementById('homeScreen')) {
-    document.getElementById('homeScreen').classList.add('active');
-  } else if (document.getElementById('authScreen')) {
-    document.getElementById('authScreen').classList.add('active');
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(180deg, #020817 0%, #111827 100%);
+  color: var(--text);
+}
+
+body {
+  min-height: 100vh;
+}
+
+button, input, textarea {
+  font: inherit;
+}
+
+.screen {
+  display: none;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.screen.active {
+  display: block;
+}
+
+.auth-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: 24px;
+}
+
+.brand-block {
+  text-align: center;
+}
+
+h1, h2, h3, h4, p {
+  margin-top: 0;
+}
+
+h1 {
+  font-size: clamp(2.2rem, 5vw, 4rem);
+  margin-bottom: 8px;
+}
+
+.tagline {
+  color: var(--muted);
+  font-size: 1.1rem;
+}
+
+.auth-card,
+.panel,
+.item-card,
+.character-card,
+.map-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: 0 20px 40px rgba(14, 116, 144, 0.15);
+}
+
+.auth-card {
+  width: min(420px, 92vw);
+  padding: 24px;
+}
+
+.auth-card h2 {
+  margin-bottom: 18px;
+}
+
+.auth-card input,
+.add-character input,
+.add-character textarea {
+  width: 100%;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: rgba(15, 23, 42, 0.8);
+  color: white;
+}
+
+small {
+  display: block;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+
+.btn {
+  border: none;
+  border-radius: 12px;
+  padding: 10px 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--green), #16a34a);
+  color: white;
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, #334155, #475569);
+  color: white;
+}
+
+.btn-small {
+  padding: 8px 12px;
+}
+
+.topbar {
+  max-width: 1200px;
+  margin: 0 auto 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+}
+
+.brand-mini {
+  font-size: 1.7rem;
+  font-weight: bold;
+}
+
+.user-panel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 8px 12px;
+}
+
+.nav {
+  max-width: 1200px;
+  margin: 0 auto 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.nav-btn {
+  background: rgba(15, 23, 42, 0.7);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
+.nav-btn.active {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.3), rgba(168, 85, 247, 0.25));
+  border-color: rgba(56, 189, 248, 0.7);
+}
+
+.page-content {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.welcome-panel {
+  padding: 22px;
+  margin-bottom: 18px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.stat-card {
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 18px 12px;
+  text-align: center;
+}
+
+.stat-value {
+  display: block;
+  font-size: clamp(1.8rem, 2vw, 2.2rem);
+  font-weight: bold;
+  color: var(--gold);
+}
+
+.stat-label {
+  color: var(--muted);
+}
+
+.panel {
+  padding: 22px;
+  margin-bottom: 18px;
+}
+
+.feature-grid,
+.item-grid,
+.character-grid,
+.map-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.feature-grid {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.feature-box {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 18px;
+}
+
+.feature-icon {
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+
+.quest-panel {
+  background: rgba(15, 23, 42, 0.8);
+}
+
+.quest-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(30, 41, 59, 0.8);
+  margin-bottom: 8px;
+}
+
+.quest-item.highlight {
+  border: 1px solid rgba(251, 191, 36, 0.6);
+}
+
+.quest-item p {
+  margin: 0;
+}
+
+.action-row {
+  display: flex;
+  justify-content: center;
+  margin: 24px 0 10px;
+}
+
+.large {
+  padding: 14px 28px;
+  font-size: 1.1rem;
+}
+
+.section-header {
+  max-width: 1200px;
+  margin: 0 auto 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.game-frame {
+  display: block;
+  width: min(1200px, 100%);
+  height: 80vh;
+  margin: 0 auto;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 16px;
+  background: #020817;
+}
+
+.narrow-content {
+  max-width: 900px;
+}
+
+.item-grid,
+.character-grid {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.item-card,
+.character-card,
+.map-card {
+  padding: 18px;
+}
+
+.item-card.selected,
+.character-card.selected,
+.map-card.active {
+  border-color: rgba(56, 189, 248, 0.8);
+  box-shadow: 0 20px 35px rgba(56, 189, 248, 0.15);
+}
+
+.item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.rarity {
+  color: var(--gold);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.character-card {
+  text-align: center;
+}
+
+.character-emoji {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+}
+
+.owner-panel {
+  margin-top: 18px;
+}
+
+.add-character {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.inline-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.shop-panel h2 {
+  margin-bottom: 8px;
+}
+
+.shop-section {
+  margin-top: 20px;
+}
+
+.map-grid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.map-card {
+  background: rgba(15, 23, 42, 0.75);
+}
+
+.map-card .difficulty {
+  color: var(--gold);
+  font-weight: bold;
+}
+
+@media (max-width: 640px) {
+  .screen {
+    padding: 16px;
+  }
+
+  .nav {
+    justify-content: center;
+  }
+
+  .topbar,
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 
-function showScreen(screenId) {
-  const screens = document.querySelectorAll('.screen');
-  screens.forEach(screen => screen.classList.remove('active'));
-  const target = document.getElementById(screenId);
-  if (target) target.classList.add('active');
-
-  document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-  const activeNav = Array.from(document.querySelectorAll('.nav-btn')).find(btn => btn.textContent.includes(screenId.replace('Screen', '').replace('home', 'Home')));
-  if (activeNav) activeNav.classList.add('active');
-}
-
-function renderHomeStats() {
-  const coinsEl = document.getElementById('homeCoins');
-  const levelEl = document.getElementById('homeLevel');
-  const bossEl = document.getElementById('homeBossesDefeated');
-  const heroEl = document.getElementById('homeCharactersOwned');
-  const nameEl = document.getElementById('playerName');
-  const userLabel = document.getElementById('currentUserLabel');
-
-  if (coinsEl) coinsEl.textContent = appState.coins;
-  if (levelEl) levelEl.textContent = appState.level;
-  if (bossEl) bossEl.textContent = appState.bossesDefeated;
-  if (heroEl) heroEl.textContent = appState.characters.length;
-  if (nameEl) nameEl.textContent = appState.username || 'Adventurer';
-  if (userLabel) userLabel.textContent = appState.username || 'Guest';
-}
-
-function renderInventory() {
-  const weaponList = document.getElementById('weaponsList');
-  const armorList = document.getElementById('armorList');
-
-  if (weaponList) {
-    weaponList.innerHTML = WEAPONS.map(item => {
-      const owned = appState.weaponIndex === item.id || item.unlocked;
-      const selected = appState.weaponIndex === item.id;
-      return `
-        <div class="item-card ${selected ? 'selected' : ''}">
-          <div class="item-header">
-            <h3>${item.name}</h3>
-            <span class="rarity">${item.rarity}</span>
-          </div>
-          <p>Damage: ${item.damage}</p>
-          <p>Cost: ${item.cost} coins</p>
-          <button class="btn ${owned ? 'btn-secondary' : 'btn-primary'}" onclick="buyWeapon(${item.id})">
-            ${selected ? 'Equipped' : owned ? 'Equip' : 'Buy'}
-          </button>
-        </div>
-      `;
-    }).join('');
-  }
-
-  if (armorList) {
-    armorList.innerHTML = ARMOR.map(item => {
-      const selected = appState.armorIndex === item.id;
-      const owned = item.unlocked;
-      return `
-        <div class="item-card ${selected ? 'selected' : ''}">
-          <div class="item-header">
-            <h3>${item.name}</h3>
-            <span class="rarity">${item.rarity}</span>
-          </div>
-          <p>Block: ${item.block}</p>
-          <p>Cost: ${item.cost} coins</p>
-          <button class="btn ${owned ? 'btn-secondary' : 'btn-primary'}" onclick="buyArmor(${item.id})">
-            ${selected ? 'Equipped' : owned ? 'Equip' : 'Buy'}
-          </button>
-        </div>
-      `;
-    }).join('');
-  }
-}
-
-function renderShop() {
-  const shopWeapons = document.getElementById('shopWeapons');
-  const shopArmor = document.getElementById('shopArmor');
-  const shopCoins = document.getElementById('shopCoins');
-
-  if (shopCoins) shopCoins.textContent = appState.coins;
-
-  if (shopWeapons) {
-    shopWeapons.innerHTML = WEAPONS.map(item => {
-      const owned = item.unlocked || appState.weaponIndex === item.id;
-      return `
-        <div class="item-card">
-          <h3>${item.name}</h3>
-          <p>Damage: ${item.damage}</p>
-          <p>Cost: ${item.cost}</p>
-          <button class="btn ${owned ? 'btn-secondary' : 'btn-primary'}" onclick="buyWeapon(${item.id})">
-            ${owned ? 'Owned' : 'Buy'}
-          </button>
-        </div>
-      `;
-    }).join('');
-  }
-
-  if (shopArmor) {
-    shopArmor.innerHTML = ARMOR.map(item => {
-      const owned = item.unlocked || appState.armorIndex === item.id;
-      return `
-        <div class="item-card">
-          <h3>${item.name}</h3>
-          <p>Block: ${item.block}</p>
-          <p>Cost: ${item.cost}</p>
-          <button class="btn ${owned ? 'btn-secondary' : 'btn-primary'}" onclick="buyArmor(${item.id})">
-            ${owned ? 'Owned' : 'Buy'}
-          </button>
-        </div>
-      `;
-    }).join('');
-  }
-}
-
-function renderCharacters() {
-  const charactersList = document.getElementById('charactersList');
-  const ownerSection = document.getElementById('ownerSection');
-
-  if (charactersList) {
-    charactersList.innerHTML = appState.characters.map((character, idx) => {
-      const selected = appState.selectedCharacter === idx;
-      return `
-        <div class="character-card ${selected ? 'selected' : ''}">
-          <div class="character-emoji">${character.emoji}</div>
-          <h3>${character.name}</h3>
-          <p>${character.description}</p>
-          <div class="inline-actions">
-            <button class="btn ${selected ? 'btn-secondary' : 'btn-primary'}" onclick="selectCharacter(${idx})">
-              ${selected ? 'Selected' : 'Select'}
-            </button>
-          </div>
-        </div>
-      `;
-    }).join('');
-  }
-
-  if (ownerSection) {
-    ownerSection.style.display = appState.isOwner ? 'block' : 'none';
-  }
-}
-
-function authenticate() {
-  const usernameInput = document.getElementById('usernameInput');
-  const username = (usernameInput?.value || '').trim();
-
-  if (!username) {
-    alert('Please enter a username.');
-    return;
-  }
-
-  appState.username = username;
-  appState.isOwner = isOwnerUsername(username);
-  saveProgress(appState);
-
-  renderHomeStats();
-  renderInventory();
-  renderShop();
-  renderCharacters();
-  showScreen('homeScreen');
-}
-
-function logout() {
-  appState.username = '';
-  appState.isOwner = false;
-  saveProgress(appState);
-  const input = document.getElementById('usernameInput');
-  if (input) input.value = '';
-  document.getElementById('authScreen')?.classList.add('active');
-  document.getElementById('homeScreen')?.classList.remove('active');
-  document.getElementById('gameScreen')?.classList.remove('active');
-  document.getElementById('inventoryScreen')?.classList.remove('active');
-  document.getElementById('charactersScreen')?.classList.remove('active');
-  document.getElementById('shopScreen')?.classList.remove('active');
-}
-
-function buyWeapon(index) {
-  const item = WEAPONS[index];
-  if (!item) return;
-
-  if (appState.weaponIndex === index) {
-    appState.weaponIndex = index;
-    saveProgress(appState);
-    renderInventory();
-    renderShop();
-    return;
-  }
-
-  if (item.cost <= appState.coins) {
-    appState.coins -= item.cost;
-    appState.weaponIndex = index;
-    item.unlocked = true;
-    saveProgress(appState);
-    renderHomeStats();
-    renderInventory();
-    renderShop();
-  } else {
-    alert(`You need ${item.cost - appState.coins} more coins`);
-  }
-}
-
-function buyArmor(index) {
-  const item = ARMOR[index];
-  if (!item) return;
-
-  if (appState.armorIndex === index) {
-    appState.armorIndex = index;
-    saveProgress(appState);
-    renderInventory();
-    renderShop();
-    return;
-  }
-
-  if (item.cost <= appState.coins) {
-    appState.coins -= item.cost;
-    appState.armorIndex = index;
-    item.unlocked = true;
-    saveProgress(appState);
-    renderHomeStats();
-    renderInventory();
-    renderShop();
-  } else {
-    alert(`You need ${item.cost - appState.coins} more coins`);
-  }
-}
-
-function selectCharacter(index) {
-  appState.selectedCharacter = index;
-  saveProgress(appState);
-  renderCharacters();
-}
-
-function showAddCharacterForm() {
-  const form = document.getElementById('addCharacterForm');
-  if (form) form.style.display = 'block';
-}
-
-function hideAddCharacterForm() {
-  const form = document.getElementById('addCharacterForm');
-  if (form) form.style.display = 'none';
-}
-
-function addCharacter() {
-  if (!appState.isOwner) {
-    alert('Only the owner can add characters.');
-    return;
-  }
-
-  const nameInput = document.getElementById('newCharName');
-  const emojiInput = document.getElementById('newCharEmoji');
-  const healthInput = document.getElementById('newCharHealth');
-  const descInput = document.getElementById('newCharDesc');
-
-  const name = (nameInput?.value || '').trim();
-  const emoji = (emojiInput?.value || '').trim() || '⚔️';
-  const health = Number(healthInput?.value || 100);
-  const description = (descInput?.value || '').trim() || 'A new hero created by the owner.';
-
-  if (!name) {
-    alert('Character name is required.');
-    return;
-  }
-
-  const newCharacter = {
-    id: Date.now(),
-    name,
-    emoji,
-    health,
-    description,
-    unlocked: true,
-    isDefault: false
-  };
-
-  appState.characters.push(newCharacter);
-  appState.customCharacters.push(newCharacter);
-  saveProgress(appState);
-  renderCharacters();
-  hideAddCharacterForm();
-}
-
-function initApp() {
-  renderHomeStats();
-  renderInventory();
-  renderShop();
-  renderCharacters();
-  setScreenVisibility();
-
-  const usernameInput = document.getElementById('usernameInput');
-  if (usernameInput && appState.username) {
-    usernameInput.value = appState.username;
-  }
-
-  if (appState.username) {
-    showScreen('homeScreen');
-  }
-}
-
-window.addEventListener('DOMContentLoaded', initApp);
+README.md

@@ -11,13 +11,13 @@
     <div class="auth-panel">
       <div class="brand-block">
         <h1>⚔ Pixel Quest</h1>
-        <p class="tagline">A bigger pixel adventure universe</p>
+        <p class="tagline">A bigger pixel adventure world</p>
       </div>
 
       <div class="auth-card">
-        <h2>Start your journey</h2>
+        <h2>Start Your Journey</h2>
         <input id="usernameInput" type="text" placeholder="Enter your username" maxlength="30">
-        <small>Owners are users whose name includes Yo_kev.</small>
+        <small>Users whose name includes Yo_kev are the owner.</small>
         <button class="btn btn-primary" onclick="authenticate()">Launch Game</button>
       </div>
     </div>
@@ -38,6 +38,7 @@
       <button class="nav-btn" onclick="showScreen('inventoryScreen')">🎒 Inventory</button>
       <button class="nav-btn" onclick="showScreen('charactersScreen')">👤 Characters</button>
       <button class="nav-btn" onclick="showScreen('shopScreen')">🏪 Shop</button>
+      <button class="nav-btn" onclick="showScreen('mapScreen')">🗺️ Map</button>
     </nav>
 
     <main class="page-content">
@@ -87,6 +88,11 @@
             <p>Users with Yo_kev in their name unlock creator tools.</p>
           </article>
         </div>
+      </section>
+
+      <section class="panel quest-panel">
+        <h3>Current Quest</h3>
+        <div id="questList"></div>
       </section>
 
       <div class="action-row">
@@ -173,6 +179,20 @@
           <h3>Armor</h3>
           <div id="shopArmor" class="item-grid"></div>
         </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="mapScreen" class="screen">
+    <div class="section-header">
+      <button class="btn btn-secondary" onclick="showScreen('homeScreen')">← Back</button>
+      <h1>World Map</h1>
+    </div>
+
+    <main class="page-content narrow-content">
+      <section class="panel">
+        <h2>Travel the Kingdom</h2>
+        <div id="mapList" class="map-grid"></div>
       </section>
     </main>
   </div>

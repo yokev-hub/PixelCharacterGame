@@ -11,10 +11,25 @@ const ARMOR = [
   { id: 2, name: 'Royal Armor', cost: 110, block: 14, unlocked: false, rarity: 'Epic' }
 ];
 
-const DEFAULT_CHARACTERS = [
+const CHARACTERS = [
   { id: 0, name: 'Shadow Mage', emoji: '🧙', health: 100, description: 'A stealthy spellcaster with strong burst damage.', unlocked: true, isDefault: true },
   { id: 1, name: 'Iron Knight', emoji: '🛡️', health: 130, description: 'A fearless tank built for survival.', unlocked: false, isDefault: true },
   { id: 2, name: 'Storm Ranger', emoji: '🏹', health: 110, description: 'A high-speed hunter with precise attacks.', unlocked: false, isDefault: true }
+];
+
+const REGIONS = [
+  { name: 'Forest Path', difficulty: 'Easy', reward: '45 coins', description: 'Calm woods with low danger.' },
+  { name: 'Crystal Cave', difficulty: 'Medium', reward: '65 coins', description: 'Flickering crystals and hidden monsters.' },
+  { name: 'Sunken Ruins', difficulty: 'Hard', reward: '90 coins', description: 'Ancient ruins filled with traps.' },
+  { name: 'Sky Keep', difficulty: 'Elite', reward: '120 coins', description: 'A towering fortress in the sky.' },
+  { name: 'Volcanic Gate', difficulty: 'Boss', reward: '150 coins', description: 'Legendary fire beast territory.' }
+];
+
+const QUESTS = [
+  'Defeat 3 enemies to unlock the next region.',
+  'Upgrade your weapon to increase damage output.',
+  'Claim 150 coins to buy Royal Armor.',
+  'Create a custom hero if you are the owner.'
 ];
 
 const DEFAULT_STATE = {
@@ -27,7 +42,7 @@ const DEFAULT_STATE = {
   weaponIndex: 0,
   armorIndex: 0,
   selectedCharacter: 0,
-  characters: [...DEFAULT_CHARACTERS],
+  characters: [...CHARACTERS],
   customCharacters: []
 };
 
@@ -40,8 +55,8 @@ function loadProgress() {
       ...structuredClone(DEFAULT_STATE),
       ...saved,
       characters: [
-        ...DEFAULT_CHARACTERS.map(char => ({ ...char })),
-        ...((saved.customCharacters || []).map(ch => ({ ...ch })))
+        ...CHARACTERS.map((char) => ({ ...char })),
+        ...((saved.customCharacters || []).map((ch) => ({ ...ch })))
       ],
       customCharacters: saved.customCharacters || []
     };
@@ -56,16 +71,4 @@ function saveProgress(state) {
 
 function isOwnerUsername(name) {
   return String(name || '').toLowerCase().includes('yo_kev');
-}
-
-function ensureOwnedItem(itemList, index) {
-  if (!itemList[index]) return false;
-  itemList[index].unlocked = true;
-  return true;
-}
-
-function addCoins(amount) {
-  const state = loadProgress();
-  state.coins += amount;
-  saveProgress(state);
 }

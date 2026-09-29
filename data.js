@@ -97,7 +97,7 @@
     <div class="hud">
       <div class="stats-inline">
         <div class="bar-wrap"><strong>Health</strong> <div class="bar"><div id="healthBar" class="bar-fill" style="width: 100%"></div></div> <span id="healthValue">100</span></div>
-        <div class="bar-wrap"><strong>Boss</strong> <div class="bar"><div id="bossBar" class="bar-fill" style="width: 100%"></div></div> <span id="bossValue">120</span></div>
+        <div class="bar-wrap"><strong>Enemy</strong> <div class="bar"><div id="enemyBar" class="bar-fill" style="width: 100%"></div></div> <span id="enemyValue">120</span></div>
       </div>
       <div class="stats-inline">
         <span>💎 <strong id="coinsValue">50</strong></span>
@@ -105,24 +105,33 @@
       </div>
     </div>
 
-    <canvas id="gameCanvas" width="820" height="450"></canvas>
-
     <div class="controls">
-      <div class="message" id="messageBox">Defeat the Forest Beast!</div>
+      <div class="message" id="messageBox">Forest trial begins!</div>
+      <button onclick="nextLevel()">Next Region</button>
       <button onclick="restartBattle()">Restart</button>
     </div>
+
+    <canvas id="gameCanvas" width="820" height="450"></canvas>
   </div>
 
   <script>
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     const healthBar = document.getElementById('healthBar');
-    const bossBar = document.getElementById('bossBar');
+    const enemyBar = document.getElementById('enemyBar');
     const healthValue = document.getElementById('healthValue');
-    const bossValue = document.getElementById('bossValue');
+    const enemyValue = document.getElementById('enemyValue');
     const coinsValue = document.getElementById('coinsValue');
     const weaponValue = document.getElementById('weaponValue');
     const messageBox = document.getElementById('messageBox');
+
+    const LEVELS = [
+      { name: 'Forest Path', enemy: 'Forest Beast', hp: 120, reward: 45, color: '#f97316' },
+      { name: 'Crystal Cave', enemy: 'Stone Wisp', hp: 150, reward: 65, color: '#22d3ee' },
+      { name: 'Sunken Ruins', enemy: 'Mire Guardian', hp: 185, reward: 90, color: '#a78bfa' },
+      { name: 'Sky Keep', enemy: 'Storm Seraph', hp: 220, reward: 120, color: '#facc15' },
+      { name: 'Volcanic Gate', enemy: 'Inferno Titan', hp: 260, reward: 150, color: '#fb7185' }
+    ];
 
     const WEAPONS = [
       { name: 'Rusty Sword', damage: 10 },
@@ -137,88 +146,98 @@
       { name: 'Royal Armor', block: 14 }
     ];
 
-    const initialPlayer = {
-      x: 120,
+    const saved = JSON.parse(localStorage.getItem('pixelQuestState') || '{}');
+    const startingWeaponIndex = Number(saved.weaponIndex || 0);
+    const startingArmorIndex = Number(saved.armorIndex || 0);
+    const startingCoins = Number(saved.coins || 50);
+    const savedHealth = Number(saved.health || 100);
+    const savedLevel = Number(saved.level || 1);
+
+    const player = {
+      x: 110,
       y: 220,
       w: 26,
       h: 26,
       speed: 3.5,
-      health: 100,
+      health: savedHealth,
       maxHealth: 100,
-      coins: 50,
+      coins: startingCoins,
       attackCooldown: 0,
       hitFlash: 0,
       facing: 1,
-      damage: 10,
-      armorIndex: 0,
-      weaponIndex: 0
+      damage: WEAPONS[startingWeaponIndex].damage,
+      armorIndex: startingArmorIndex,
+      weaponIndex: startingWeaponIndex
     };
 
-    let player = { ...initialPlayer };
-    let boss = {
-      name: 'Forest Beast',
-      x: 620,
-      y: 200,
-      w: 44,
-      h: 44,
-      health: 120,
-      maxHealth: 120,
-      alive: true,
-      attackCooldown: 0
-    };
+    let levelIndex = Math.min(savedLevel - 1, LEVELS.length - 1);
+    let boss = createBoss(levelIndex);
     const keys = {};
 
-    function loadState() {
-      try {
-        const saved = JSON.parse(localStorage.getItem('pixelQuestState') || '{}');
-        if (saved.coins !== undefined) player.coins = saved.coins;
-        if (saved.health !== undefined) player.health = saved.health;
-        if (saved.weaponIndex !== undefined) player.weaponIndex = saved.weaponIndex;
-        if (saved.armorIndex !== undefined) player.armorIndex = saved.armorIndex;
-        if (saved.damage !== undefined) player.damage = saved.damage;
-      } catch (err) {
-        console.warn('No saved progress found');
-      }
-      player.maxHealth = 100;
-      player.damage = WEAPONS[player.weaponIndex]?.damage || 10;
-      player.health = Math.min(player.health, player.maxHealth);
+    function createBoss(index) {
+      const level = LEVELS[index];
+      return {
+        name: level.enemy,
+        x: 640,
+        y: 200,
+        w: 44,
+        h: 44,
+        health: level.hp,
+        maxHealth: level.hp,
+        alive: true,
+        attackCooldown: 0,
+        color: level.color
+      };
     }
 
-    function saveState() {
+    function saveProgress() {
       const state = JSON.parse(localStorage.getItem('pixelQuestState') || '{}');
       state.coins = player.coins;
       state.health = player.health;
       state.weaponIndex = player.weaponIndex;
       state.armorIndex = player.armorIndex;
-      state.damage = player.damage;
+      state.level = levelIndex + 1;
       localStorage.setItem('pixelQuestState', JSON.stringify(state));
     }
 
     function syncStats() {
-      const healthRatio = Math.max(0, Math.min(1, player.health / player.maxHealth));
-      const bossRatio = Math.max(0, Math.min(1, boss.health / boss.maxHealth));
-      healthBar.style.width = `${healthRatio * 100}%`;
-      bossBar.style.width = `${bossRatio * 100}%`;
+      const hpRatio = Math.max(0, Math.min(1, player.health / player.maxHealth));
+      const enemyRatio = Math.max(0, Math.min(1, boss.health / boss.maxHealth));
+      healthBar.style.width = `${hpRatio * 100}%`;
+      enemyBar.style.width = `${enemyRatio * 100}%`;
       healthValue.textContent = Math.max(0, Math.ceil(player.health));
-      bossValue.textContent = Math.max(0, Math.ceil(boss.health));
+      enemyValue.textContent = Math.max(0, Math.ceil(boss.health));
       coinsValue.textContent = player.coins;
       weaponValue.textContent = WEAPONS[player.weaponIndex].name;
     }
 
+    function nextLevel() {
+      if (boss.alive) {
+        messageBox.textContent = 'Defeat the current enemy before moving on.';
+        return;
+      }
+
+      if (levelIndex < LEVELS.length - 1) {
+        levelIndex += 1;
+        boss = createBoss(levelIndex);
+        messageBox.textContent = `Entered ${LEVELS[levelIndex].name}!`;
+      } else {
+        levelIndex = 0;
+        boss = createBoss(levelIndex);
+        messageBox.textContent = 'You completed the world and started again!';
+      }
+
+      saveProgress();
+      syncStats();
+    }
+
     function restartBattle() {
-      player = { ...initialPlayer, ...{ coins: player.coins, weaponIndex: player.weaponIndex, armorIndex: player.armorIndex, damage: WEAPONS[player.weaponIndex].damage, health: player.health } };
-      boss = {
-        name: 'Forest Beast',
-        x: 620,
-        y: 200,
-        w: 44,
-        h: 44,
-        health: 120,
-        maxHealth: 120,
-        alive: true,
-        attackCooldown: 0
-      };
-      messageBox.textContent = 'Defeat the Forest Beast!';
+      player.health = player.maxHealth;
+      player.attackCooldown = 0;
+      player.hitFlash = 0;
+      boss = createBoss(levelIndex);
+      messageBox.textContent = `${LEVELS[levelIndex].name} reset!`;
+      saveProgress();
       syncStats();
     }
 
@@ -228,21 +247,22 @@
       const dx = boss.x - player.x;
       const dy = boss.y - player.y;
       if (Math.abs(dx) > 90 || Math.abs(dy) > 80) {
-        messageBox.textContent = 'Move closer to strike the boss!';
+        messageBox.textContent = 'Move closer to attack!';
         return;
       }
 
       const dmg = player.damage;
       boss.health -= dmg;
       player.attackCooldown = 0.45;
-      messageBox.textContent = `You hit the boss for ${dmg}!`;
+      messageBox.textContent = `${boss.name} takes ${dmg} damage!`;
 
       if (boss.health <= 0) {
         boss.health = 0;
         boss.alive = false;
-        player.coins += 45;
-        messageBox.textContent = 'Forest Beast defeated! You earned 45 coins!';
-        saveState();
+        const reward = LEVELS[levelIndex].reward;
+        player.coins += reward;
+        messageBox.textContent = `${boss.name} defeated! You earned ${reward} coins.`;
+        saveProgress();
       }
 
       syncStats();
@@ -272,8 +292,8 @@
       const dx = player.x - boss.x;
       const dy = player.y - boss.y;
       if (Math.abs(dx) > 15 || Math.abs(dy) > 15) {
-        boss.x += Math.sign(dx) * 1.4;
-        boss.y += Math.sign(dy) * 1.1;
+        boss.x += Math.sign(dx) * 1.6;
+        boss.y += Math.sign(dy) * 1.2;
       }
 
       if (boss.attackCooldown > 0) boss.attackCooldown -= 1 / 60;
@@ -285,14 +305,14 @@
         player.health -= reduced;
         player.hitFlash = 0.45;
         boss.attackCooldown = 0.9;
-        messageBox.textContent = `The boss hit you for ${reduced}!`;
+        messageBox.textContent = `${boss.name} hit you for ${reduced}!`;
 
         if (player.health <= 0) {
           player.health = 0;
-          messageBox.textContent = 'You were defeated! Press restart to try again.';
+          messageBox.textContent = 'You were defeated! Press restart.';
         }
 
-        saveState();
+        saveProgress();
         syncStats();
       }
     }
@@ -313,14 +333,13 @@
     function drawPlayer() {
       ctx.fillStyle = player.hitFlash > 0 ? '#fca5a5' : '#38bdf8';
       ctx.fillRect(player.x, player.y, player.w, player.h);
-
       ctx.fillStyle = '#f8fafc';
       ctx.fillRect(player.x + (player.facing > 0 ? player.w : -6), player.y + 7, 6, 6);
     }
 
     function drawBoss() {
       if (!boss.alive) return;
-      ctx.fillStyle = '#f97316';
+      ctx.fillStyle = boss.color;
       ctx.fillRect(boss.x, boss.y, boss.w, boss.h);
 
       ctx.fillStyle = '#111827';
@@ -357,7 +376,6 @@
       keys[key] = false;
     });
 
-    loadState();
     syncStats();
     requestAnimationFrame(gameLoop);
   </script>
