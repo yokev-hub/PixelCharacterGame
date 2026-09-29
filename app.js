@@ -1,74 +1,76 @@
 const WEAPONS = [
-  { id: 0, name: 'Rusty Sword', cost: 0, damage: 10, unlocked: true, rarity: 'Starter' },
-  { id: 1, name: 'Flame Blade', cost: 35, damage: 18, unlocked: false, rarity: 'Rare' },
-  { id: 2, name: 'Thunder Hammer', cost: 75, damage: 28, unlocked: false, rarity: 'Epic' },
-  { id: 3, name: 'Arcane Scythe', cost: 120, damage: 38, unlocked: false, rarity: 'Legendary' }
+  { id: 0, name: 'Rusty Sword', cost: 0, damage: 10, unlocked: true, tier: 1 },
+  { id: 1, name: 'Flame Blade', cost: 35, damage: 18, unlocked: false, tier: 2 },
+  { id: 2, name: 'Thunder Hammer', cost: 75, damage: 28, unlocked: false, tier: 3 },
+  { id: 3, name: 'Arcane Scythe', cost: 120, damage: 38, unlocked: false, tier: 4 }
 ];
 
 const ARMOR = [
-  { id: 0, name: 'Leather Armor', cost: 20, block: 4, unlocked: true, rarity: 'Starter' },
-  { id: 1, name: 'Steel Armor', cost: 55, block: 8, unlocked: false, rarity: 'Rare' },
-  { id: 2, name: 'Royal Armor', cost: 110, block: 14, unlocked: false, rarity: 'Epic' }
+  { id: 0, name: 'Leather Armor', cost: 20, block: 4, unlocked: true, tier: 1 },
+  { id: 1, name: 'Steel Armor', cost: 55, block: 8, unlocked: false, tier: 2 },
+  { id: 2, name: 'Royal Armor', cost: 110, block: 14, unlocked: false, tier: 3 }
 ];
 
-const CHARACTERS = [
-  { id: 0, name: 'Shadow Mage', emoji: '🧙', health: 100, description: 'A stealthy spellcaster with strong burst damage.', unlocked: true, isDefault: true },
-  { id: 1, name: 'Iron Knight', emoji: '🛡️', health: 130, description: 'A fearless tank built for survival.', unlocked: false, isDefault: true },
-  { id: 2, name: 'Storm Ranger', emoji: '🏹', health: 110, description: 'A high-speed hunter with precise attacks.', unlocked: false, isDefault: true }
+const HEROES = [
+  { id: 1, name: 'Shadow Mage', emoji: '🧙', health: 100, desc: 'Stealthy spellcaster.', official: true },
+  { id: 2, name: 'Iron Knight', emoji: '🛡️', health: 130, desc: 'Tough defender.', official: true },
+  { id: 3, name: 'Storm Ranger', emoji: '🏹', health: 110, desc: 'Swift attacker.', official: true }
 ];
 
 const REGIONS = [
-  { name: 'Forest Path', difficulty: 'Easy', reward: '45 coins', description: 'Calm woods with low danger.' },
-  { name: 'Crystal Cave', difficulty: 'Medium', reward: '65 coins', description: 'Flickering crystals and hidden monsters.' },
-  { name: 'Sunken Ruins', difficulty: 'Hard', reward: '90 coins', description: 'Ancient ruins filled with traps.' },
-  { name: 'Sky Keep', difficulty: 'Elite', reward: '120 coins', description: 'A towering fortress in the sky.' },
-  { name: 'Volcanic Gate', difficulty: 'Boss', reward: '150 coins', description: 'Legendary fire beast territory.' }
+  { id: 1, name: 'Forest Path', enemy: 'Forest Beast', hp: 120, reward: 45, color: '#f97316' },
+  { id: 2, name: 'Crystal Cave', enemy: 'Stone Wisp', hp: 150, reward: 65, color: '#22d3ee' },
+  { id: 3, name: 'Sunken Ruins', enemy: 'Mire Guardian', hp: 185, reward: 90, color: '#a78bfa' },
+  { id: 4, name: 'Sky Keep', enemy: 'Storm Seraph', hp: 220, reward: 120, color: '#facc15' },
+  { id: 5, name: 'Volcanic Gate', enemy: 'Inferno Titan', hp: 260, reward: 150, color: '#fb7185' }
 ];
 
 const QUESTS = [
-  'Defeat 3 enemies to unlock the next region.',
-  'Upgrade your weapon to increase damage output.',
-  'Claim 150 coins to buy Royal Armor.',
-  'Create a custom hero if you are the owner.'
+  'Defeat 3 enemies to progress.',
+  'Buy upgraded gear from the shop.',
+  'Collect 200 coins for Royal Armor.',
+  'Create your own hero (owner only).'
 ];
 
-const DEFAULT_STATE = {
+const INITIAL_STATE = {
   username: '',
   isOwner: false,
   coins: 50,
   health: 100,
   level: 1,
-  bossesDefeated: 0,
-  weaponIndex: 0,
-  armorIndex: 0,
-  selectedCharacter: 0,
-  characters: [...CHARACTERS],
-  customCharacters: []
+  bosses: 0,
+  weaponIdx: 0,
+  armorIdx: 0,
+  heroIdx: 0,
+  heroes: [...HEROES],
+  custom: []
 };
 
-function loadProgress() {
+function loadState() {
   try {
-    const raw = localStorage.getItem('pixelQuestState');
-    if (!raw) return structuredClone(DEFAULT_STATE);
+    const raw = localStorage.getItem('pqState');
+    if (!raw) return JSON.parse(JSON.stringify(INITIAL_STATE));
     const saved = JSON.parse(raw);
     return {
-      ...structuredClone(DEFAULT_STATE),
+      ...JSON.parse(JSON.stringify(INITIAL_STATE)),
       ...saved,
-      characters: [
-        ...CHARACTERS.map((char) => ({ ...char })),
-        ...((saved.customCharacters || []).map((ch) => ({ ...ch })))
-      ],
-      customCharacters: saved.customCharacters || []
+      heroes: [...HEROES, ...(saved.custom || [])],
+      custom: saved.custom || []
     };
-  } catch (error) {
-    return structuredClone(DEFAULT_STATE);
+  } catch (e) {
+    return JSON.parse(JSON.stringify(INITIAL_STATE));
   }
 }
 
-function saveProgress(state) {
-  localStorage.setItem('pixelQuestState', JSON.stringify(state));
+function saveState(state) {
+  localStorage.setItem('pqState', JSON.stringify(state));
 }
 
-function isOwnerUsername(name) {
-  return String(name || '').toLowerCase().includes('yo_kev');
+function isOwner(state) {
+  return state.isOwner;
+}
+
+function markOwner(state) {
+  state.isOwner = true;
+  saveState(state);
 }

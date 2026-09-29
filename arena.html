@@ -1,0 +1,155 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pixel Quest</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="authScreen" class="screen active">
+    <div class="auth-container">
+      <div class="auth-box">
+        <h1>⚔ Pixel Quest</h1>
+        <p class="subtitle">An Epic Pixel Adventure</p>
+        
+        <div class="form-section">
+          <h2>Create Account</h2>
+          <input id="usernameInput" type="text" placeholder="Choose your hero name" maxlength="20" required>
+          <small>Be the first to claim ownership!</small>
+          <button class="btn btn-primary full-width" onclick="authenticate()">Start Game</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="homeScreen" class="screen">
+    <header class="header">
+      <h1>⚔ Pixel Quest</h1>
+      <div class="header-right">
+        <span id="currentUser"></span>
+        <button class="btn btn-small" onclick="logout()">Logout</button>
+      </div>
+    </header>
+
+    <nav class="navbar">
+      <button class="nav-item active" onclick="switchTab('home')">🏠 Home</button>
+      <button class="nav-item" onclick="switchTab('battle')">⚔️ Battle</button>
+      <button class="nav-item" onclick="switchTab('inventory')">🎒 Inventory</button>
+      <button class="nav-item" onclick="switchTab('heroes')">👤 Heroes</button>
+      <button class="nav-item" onclick="switchTab('shop')">🏪 Shop</button>
+      <button class="nav-item" onclick="switchTab('map')">🗺️ Map</button>
+    </nav>
+
+    <main class="content">
+      <section id="homeTab" class="tab active">
+        <div class="hero-card">
+          <h2>Welcome, <span id="heroName">Adventurer</span>!</h2>
+          <div class="stats-row">
+            <div class="stat">
+              <div class="stat-value" id="coinCount">50</div>
+              <div class="stat-label">💎 Coins</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value" id="levelCount">1</div>
+              <div class="stat-label">⭐ Level</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value" id="bossCount">0</div>
+              <div class="stat-label">☠️ Bosses</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value" id="heroCount">1</div>
+              <div class="stat-label">👤 Heroes</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>Quick Actions</h3>
+          <button class="btn btn-primary" onclick="switchTab('battle')">⚔️ Start Battle</button>
+          <button class="btn btn-secondary" onclick="switchTab('shop')">🏪 Visit Shop</button>
+        </div>
+
+        <div class="section">
+          <h3>Current Quests</h3>
+          <div id="questContainer"></div>
+        </div>
+
+        <div class="section" id="ownerTools" style="display: none;">
+          <h3>👑 Owner Panel</h3>
+          <p>You are the owner! Create custom heroes and content.</p>
+          <button class="btn btn-primary" onclick="showCreateHero()">➕ Create Hero</button>
+          <div id="createHeroForm" class="form-section" style="display: none;">
+            <h4>Create New Hero</h4>
+            <input id="heroName" type="text" placeholder="Hero Name" maxlength="20">
+            <input id="heroEmoji" type="text" placeholder="Emoji" maxlength="3" value="⚔️">
+            <input id="heroHealth" type="number" min="50" max="300" value="100">
+            <textarea id="heroDesc" placeholder="Description"></textarea>
+            <div class="btn-group">
+              <button class="btn btn-primary" onclick="createHero()">Create</button>
+              <button class="btn btn-secondary" onclick="hideCreateHero()">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="battleTab" class="tab">
+        <div class="iframe-container">
+          <iframe src="arena.html" title="Battle Arena"></iframe>
+        </div>
+      </section>
+
+      <section id="inventoryTab" class="tab">
+        <div class="inventory-grid">
+          <div class="inventory-section">
+            <h3>⚔️ Weapons</h3>
+            <div id="weaponsList" class="item-grid"></div>
+          </div>
+          <div class="inventory-section">
+            <h3>🛡️ Armor</h3>
+            <div id="armorList" class="item-grid"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="heroesTab" class="tab">
+        <div class="heroes-section">
+          <h3>Your Heroes</h3>
+          <div id="heroesList" class="heroes-grid"></div>
+        </div>
+        <div id="ownerHeroTools" class="section" style="display: none;">
+          <h3>Create Custom Hero</h3>
+          <button class="btn btn-primary" onclick="showCreateHero()">➕ Add Hero</button>
+        </div>
+      </section>
+
+      <section id="shopTab" class="tab">
+        <div class="shop-section">
+          <h2>Your Balance: <span id="shopCoins">50</span> 💎</h2>
+          <div class="shop-grid">
+            <div class="shop-category">
+              <h3>⚔️ Weapons</h3>
+              <div id="shopWeapons" class="item-grid"></div>
+            </div>
+            <div class="shop-category">
+              <h3>🛡️ Armor</h3>
+              <div id="shopArmor" class="item-grid"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="mapTab" class="tab">
+        <div class="map-section">
+          <h3>World Map</h3>
+          <div id="mapList" class="map-grid"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,334 +1,209 @@
-const appState = loadProgress();
+const canvas = document.getElementById('battleCanvas');
+const ctx = canvas.getContext('2d');
+const playerHealthBar = document.getElementById('playerHealthBar');
+const enemyHealthBar = document.getElementById('enemyHealthBar');
+const playerHealthText = document.getElementById('playerHealthText');
+const enemyHealthText = document.getElementById('enemyHealthText');
+const coinsText = document.getElementById('coinsText');
+const weaponText = document.getElementById('weaponText');
+const battleMessage = document.getElementById('battleMessage');
 
-function setScreenVisibility() {
-  const screens = document.querySelectorAll('.screen');
-  screens.forEach((screen) => screen.classList.remove('active'));
+const saved = loadState();
+const player = {
+  x: 100,
+  y: 220,
+  w: 24,
+  h: 24,
+  speed: 3.5,
+  health: saved.health,
+  maxHealth: 100,
+  coins: saved.coins,
+  damage: WEAPONS[saved.weaponIdx].damage,
+  block: ARMOR[saved.armorIdx].block,
+  attackCd: 0,
+  hitFlash: 0,
+  facing: 1
+};
 
-  if (appState.username) {
-    document.getElementById('homeScreen')?.classList.add('active');
-  } else {
-    document.getElementById('authScreen')?.classList.add('active');
-  }
-}
+let regionIdx = Math.max(0, saved.level - 1);
+let enemy = createEnemy();
+const keys = {};
 
-function showScreen(screenId) {
-  const screens = document.querySelectorAll('.screen');
-  screens.forEach((screen) => screen.classList.remove('active'));
-  const target = document.getElementById(screenId);
-  if (target) target.classList.add('active');
-
-  document.querySelectorAll('.nav-btn').forEach((btn) => btn.classList.remove('active'));
-  const match = Array.from(document.querySelectorAll('.nav-btn')).find((btn) => btn.textContent.toLowerCase().includes(screenId.replace('Screen', '').replace('home', 'home')));
-  if (match) match.classList.add('active');
-}
-
-function renderHomeStats() {
-  const coinsEl = document.getElementById('homeCoins');
-  const levelEl = document.getElementById('homeLevel');
-  const bossEl = document.getElementById('homeBossesDefeated');
-  const heroEl = document.getElementById('homeCharactersOwned');
-  const nameEl = document.getElementById('playerName');
-  const userLabel = document.getElementById('currentUserLabel');
-
-  if (coinsEl) coinsEl.textContent = appState.coins;
-  if (levelEl) levelEl.textContent = appState.level;
-  if (bossEl) bossEl.textContent = appState.bossesDefeated;
-  if (heroEl) heroEl.textContent = appState.characters.length;
-  if (nameEl) nameEl.textContent = appState.username || 'Adventurer';
-  if (userLabel) userLabel.textContent = appState.username || 'Guest';
-}
-
-function renderQuestList() {
-  const container = document.getElementById('questList');
-  if (!container) return;
-
-  container.innerHTML = QUESTS.map((quest, index) => `
-    <div class="quest-item ${index === 0 ? 'highlight' : ''}">
-      <span>✦</span>
-      <p>${quest}</p>
-    </div>
-  `).join('');
-}
-
-function renderMapList() {
-  const container = document.getElementById('mapList');
-  if (!container) return;
-
-  container.innerHTML = REGIONS.map((region, index) => `
-    <div class="map-card ${index < appState.level ? 'active' : ''}">
-      <h3>${region.name}</h3>
-      <p class="difficulty">${region.difficulty}</p>
-      <p>${region.description}</p>
-      <small>Reward: ${region.reward}</small>
-    </div>
-  `).join('');
-}
-
-function renderInventory() {
-  const weaponList = document.getElementById('weaponsList');
-  const armorList = document.getElementById('armorList');
-
-  if (weaponList) {
-    weaponList.innerHTML = WEAPONS.map((item) => {
-      const selected = appState.weaponIndex === item.id;
-      const owned = item.unlocked || appState.weaponIndex === item.id;
-      return `
-        <div class="item-card ${selected ? 'selected' : ''}">
-          <div class="item-header">
-            <h3>${item.name}</h3>
-            <span class="rarity">${item.rarity}</span>
-          </div>
-          <p>Damage: ${item.damage}</p>
-          <p>Cost: ${item.cost} coins</p>
-          <button class="btn ${owned ? 'btn-secondary' : 'btn-primary'}" onclick="buyWeapon(${item.id})">
-            ${selected ? 'Equipped' : owned ? 'Equip' : 'Buy'}
-          </button>
-        </div>
-      `;
-    }).join('');
-  }
-
-  if (armorList) {
-    armorList.innerHTML = ARMOR.map((item) => {
-      const selected = appState.armorIndex === item.id;
-      const owned = item.unlocked || appState.armorIndex === item.id;
-      return `
-        <div class="item-card ${selected ? 'selected' : ''}">
-          <div class="item-header">
-            <h3>${item.name}</h3>
-            <span class="rarity">${item.rarity}</span>
-          </div>
-          <p>Block: ${item.block}</p>
-          <p>Cost: ${item.cost} coins</p>
-          <button class="btn ${owned ? 'btn-secondary' : 'btn-primary'}" onclick="buyArmor(${item.id})">
-            ${selected ? 'Equipped' : owned ? 'Equip' : 'Buy'}
-          </button>
-        </div>
-      `;
-    }).join('');
-  }
-}
-
-function renderShop() {
-  const shopWeapons = document.getElementById('shopWeapons');
-  const shopArmor = document.getElementById('shopArmor');
-  const shopCoins = document.getElementById('shopCoins');
-
-  if (shopCoins) shopCoins.textContent = appState.coins;
-
-  if (shopWeapons) {
-    shopWeapons.innerHTML = WEAPONS.map((item) => {
-      const owned = item.unlocked || appState.weaponIndex === item.id;
-      return `
-        <div class="item-card">
-          <h3>${item.name}</h3>
-          <p>Damage: ${item.damage}</p>
-          <p>Cost: ${item.cost}</p>
-          <button class="btn ${owned ? 'btn-secondary' : 'btn-primary'}" onclick="buyWeapon(${item.id})">
-            ${owned ? 'Owned' : 'Buy'}
-          </button>
-        </div>
-      `;
-    }).join('');
-  }
-
-  if (shopArmor) {
-    shopArmor.innerHTML = ARMOR.map((item) => {
-      const owned = item.unlocked || appState.armorIndex === item.id;
-      return `
-        <div class="item-card">
-          <h3>${item.name}</h3>
-          <p>Block: ${item.block}</p>
-          <p>Cost: ${item.cost}</p>
-          <button class="btn ${owned ? 'btn-secondary' : 'btn-primary'}" onclick="buyArmor(${item.id})">
-            ${owned ? 'Owned' : 'Buy'}
-          </button>
-        </div>
-      `;
-    }).join('');
-  }
-}
-
-function renderCharacters() {
-  const charactersList = document.getElementById('charactersList');
-  const ownerSection = document.getElementById('ownerSection');
-
-  if (charactersList) {
-    charactersList.innerHTML = appState.characters.map((character, index) => {
-      const selected = appState.selectedCharacter === index;
-      return `
-        <div class="character-card ${selected ? 'selected' : ''}">
-          <div class="character-emoji">${character.emoji}</div>
-          <h3>${character.name}</h3>
-          <p>${character.description}</p>
-          <div class="inline-actions">
-            <button class="btn ${selected ? 'btn-secondary' : 'btn-primary'}" onclick="selectCharacter(${index})">
-              ${selected ? 'Selected' : 'Select'}
-            </button>
-          </div>
-        </div>
-      `;
-    }).join('');
-  }
-
-  if (ownerSection) {
-    ownerSection.style.display = appState.isOwner ? 'block' : 'none';
-  }
-}
-
-function authenticate() {
-  const usernameInput = document.getElementById('usernameInput');
-  const username = (usernameInput?.value || '').trim();
-
-  if (!username) {
-    alert('Please enter a username.');
-    return;
-  }
-
-  appState.username = username;
-  appState.isOwner = isOwnerUsername(username);
-  saveProgress(appState);
-
-  renderHomeStats();
-  renderInventory();
-  renderShop();
-  renderCharacters();
-  renderMapList();
-  renderQuestList();
-  showScreen('homeScreen');
-}
-
-function logout() {
-  appState.username = '';
-  appState.isOwner = false;
-  saveProgress(appState);
-  document.getElementById('usernameInput').value = '';
-  document.getElementById('authScreen')?.classList.add('active');
-  document.getElementById('homeScreen')?.classList.remove('active');
-  document.getElementById('gameScreen')?.classList.remove('active');
-  document.getElementById('inventoryScreen')?.classList.remove('active');
-  document.getElementById('charactersScreen')?.classList.remove('active');
-  document.getElementById('shopScreen')?.classList.remove('active');
-  document.getElementById('mapScreen')?.classList.remove('active');
-}
-
-function buyWeapon(index) {
-  const item = WEAPONS[index];
-  if (!item) return;
-
-  if (appState.weaponIndex === index) {
-    appState.weaponIndex = index;
-    saveProgress(appState);
-    renderInventory();
-    renderShop();
-    return;
-  }
-
-  if (item.cost <= appState.coins) {
-    appState.coins -= item.cost;
-    appState.weaponIndex = index;
-    item.unlocked = true;
-    saveProgress(appState);
-    renderHomeStats();
-    renderInventory();
-    renderShop();
-  } else {
-    alert(`You need ${item.cost - appState.coins} more coins`);
-  }
-}
-
-function buyArmor(index) {
-  const item = ARMOR[index];
-  if (!item) return;
-
-  if (appState.armorIndex === index) {
-    appState.armorIndex = index;
-    saveProgress(appState);
-    renderInventory();
-    renderShop();
-    return;
-  }
-
-  if (item.cost <= appState.coins) {
-    appState.coins -= item.cost;
-    appState.armorIndex = index;
-    item.unlocked = true;
-    saveProgress(appState);
-    renderHomeStats();
-    renderInventory();
-    renderShop();
-  } else {
-    alert(`You need ${item.cost - appState.coins} more coins`);
-  }
-}
-
-function selectCharacter(index) {
-  appState.selectedCharacter = index;
-  saveProgress(appState);
-  renderCharacters();
-}
-
-function showAddCharacterForm() {
-  const form = document.getElementById('addCharacterForm');
-  if (form) form.style.display = 'block';
-}
-
-function hideAddCharacterForm() {
-  const form = document.getElementById('addCharacterForm');
-  if (form) form.style.display = 'none';
-}
-
-function addCharacter() {
-  if (!appState.isOwner) {
-    alert('Only the owner can add characters.');
-    return;
-  }
-
-  const nameInput = document.getElementById('newCharName');
-  const emojiInput = document.getElementById('newCharEmoji');
-  const healthInput = document.getElementById('newCharHealth');
-  const descInput = document.getElementById('newCharDesc');
-
-  const name = (nameInput?.value || '').trim();
-  const emoji = (emojiInput?.value || '').trim() || '⚔️';
-  const health = Number(healthInput?.value || 100);
-  const description = (descInput?.value || '').trim() || 'A new hero created by the owner.';
-
-  if (!name) {
-    alert('Character name is required.');
-    return;
-  }
-
-  const newCharacter = {
-    id: Date.now(),
-    name,
-    emoji,
-    health,
-    description,
-    unlocked: true,
-    isDefault: false
+function createEnemy() {
+  const r = REGIONS[regionIdx];
+  return {
+    x: 650,
+    y: 200,
+    w: 40,
+    h: 40,
+    health: r.hp,
+    maxHealth: r.hp,
+    alive: true,
+    attackCd: 0,
+    color: r.color
   };
-
-  appState.characters.push(newCharacter);
-  appState.customCharacters.push(newCharacter);
-  saveProgress(appState);
-  renderCharacters();
-  hideAddCharacterForm();
 }
 
-function initApp() {
-  renderHomeStats();
-  renderQuestList();
-  renderMapList();
-  renderInventory();
-  renderShop();
-  renderCharacters();
-  setScreenVisibility();
+function updateProgress() {
+  saved.coins = player.coins;
+  saved.health = player.health;
+  saved.level = regionIdx + 1;
+  saveState(saved);
+}
 
-  if (appState.username) {
-    document.getElementById('usernameInput').value = appState.username;
-    showScreen('homeScreen');
+function syncBars() {
+  const ph = Math.max(0, Math.min(1, player.health / player.maxHealth));
+  const eh = Math.max(0, Math.min(1, enemy.health / enemy.maxHealth));
+  playerHealthBar.style.width = ph * 100 + '%';
+  enemyHealthBar.style.width = eh * 100 + '%';
+  playerHealthText.textContent = Math.ceil(player.health);
+  enemyHealthText.textContent = Math.ceil(enemy.health);
+  coinsText.textContent = player.coins;
+  weaponText.textContent = WEAPONS[saved.weaponIdx].name;
+}
+
+function nextRegion() {
+  if (enemy.alive) return;
+  regionIdx = (regionIdx + 1) % REGIONS.length;
+  enemy = createEnemy();
+  player.health = player.maxHealth;
+  battleMessage.textContent = `Entered ${REGIONS[regionIdx].name}!`;
+  updateProgress();
+  syncBars();
+}
+
+function restartRegion() {
+  player.health = player.maxHealth;
+  player.attackCd = 0;
+  enemy = createEnemy();
+  battleMessage.textContent = 'Region restarted!';
+  syncBars();
+}
+
+function attack() {
+  if (player.attackCd > 0 || !enemy.alive) return;
+
+  const dx = enemy.x - player.x;
+  const dy = enemy.y - player.y;
+  if (Math.abs(dx) > 90 || Math.abs(dy) > 80) {
+    battleMessage.textContent = 'Move closer!';
+    return;
+  }
+
+  const dmg = player.damage;
+  enemy.health -= dmg;
+  player.attackCd = 0.45;
+  battleMessage.textContent = `Hit for ${dmg}!`;
+
+  if (enemy.health <= 0) {
+    enemy.alive = false;
+    const reward = REGIONS[regionIdx].reward;
+    player.coins += reward;
+    battleMessage.textContent = `Victory! +${reward} coins`;
+    updateProgress();
+  }
+  syncBars();
+}
+
+function updatePlayer() {
+  const left = keys.a || keys.ArrowLeft;
+  const right = keys.d || keys.ArrowRight;
+  const up = keys.w || keys.ArrowUp;
+  const down = keys.s || keys.ArrowDown;
+
+  if (left) { player.x -= player.speed; player.facing = -1; }
+  if (right) { player.x += player.speed; player.facing = 1; }
+  if (up) player.y -= player.speed;
+  if (down) player.y += player.speed;
+
+  player.x = Math.max(20, Math.min(canvas.width - player.w - 20, player.x));
+  player.y = Math.max(20, Math.min(canvas.height - player.h - 20, player.y));
+
+  if (player.attackCd > 0) player.attackCd -= 1 / 60;
+  if (player.hitFlash > 0) player.hitFlash -= 1 / 60;
+}
+
+function updateEnemy() {
+  if (!enemy.alive) return;
+
+  const dx = player.x - enemy.x;
+  const dy = player.y - enemy.y;
+  if (Math.abs(dx) > 15 || Math.abs(dy) > 15) {
+    enemy.x += Math.sign(dx) * 1.5;
+    enemy.y += Math.sign(dy) * 1.2;
+  }
+
+  if (enemy.attackCd > 0) enemy.attackCd -= 1 / 60;
+
+  const inRange = Math.abs(dx) < 30 && Math.abs(dy) < 30;
+  if (inRange && enemy.attackCd <= 0) {
+    const dmg = Math.max(0, 12 - player.block);
+    player.health -= dmg;
+    player.hitFlash = 0.4;
+    enemy.attackCd = 0.9;
+    battleMessage.textContent = `Hit for ${dmg}!`;
+
+    if (player.health <= 0) {
+      player.health = 0;
+      battleMessage.textContent = 'Defeated! Restart?';
+    }
+    updateProgress();
+    syncBars();
   }
 }
 
-window.addEventListener('DOMContentLoaded', initApp);
+function drawBg() {
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  for (let i = 0; i < 14; i++) {
+    ctx.fillStyle = i % 2 === 0 ? '#1e293b' : '#111827';
+    ctx.fillRect(i * 60, 0, 60, canvas.height);
+  }
+  ctx.fillStyle = '#14532d';
+  ctx.fillRect(0, canvas.height - 40, canvas.width, 40);
+}
+
+function drawPlayer() {
+  ctx.fillStyle = player.hitFlash > 0 ? '#fca5a5' : '#38bdf8';
+  ctx.fillRect(player.x, player.y, player.w, player.h);
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(player.x + (player.facing > 0 ? player.w : -6), player.y + 6, 6, 6);
+}
+
+function drawEnemy() {
+  if (!enemy.alive) return;
+  ctx.fillStyle = enemy.color;
+  ctx.fillRect(enemy.x, enemy.y, enemy.w, enemy.h);
+  ctx.fillStyle = '#111';
+  ctx.fillRect(enemy.x - 5, enemy.y - 12, enemy.w + 10, 6);
+  ctx.fillStyle = '#22c55e';
+  ctx.fillRect(enemy.x - 5, enemy.y - 12, (enemy.w + 10) * (enemy.health / enemy.maxHealth), 6);
+}
+
+function render() {
+  drawBg();
+  drawPlayer();
+  drawEnemy();
+}
+
+function loop() {
+  updatePlayer();
+  updateEnemy();
+  render();
+  requestAnimationFrame(loop);
+}
+
+window.addEventListener('keydown', e => {
+  keys[e.key.toLowerCase()] = true;
+  if (e.code === 'Space') {
+    e.preventDefault();
+    attack();
+  }
+});
+
+window.addEventListener('keyup', e => {
+  keys[e.key.toLowerCase()] = false;
+});
+
+syncBars();
+requestAnimationFrame(loop);
