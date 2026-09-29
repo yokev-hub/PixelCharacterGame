@@ -1,0 +1,183 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pixel Quest - Home</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="authScreen" class="screen active">
+    <div class="auth-panel">
+      <div class="brand-block">
+        <h1>⚔ Pixel Quest</h1>
+        <p class="tagline">A bigger pixel adventure universe</p>
+      </div>
+
+      <div class="auth-card">
+        <h2>Start your journey</h2>
+        <input id="usernameInput" type="text" placeholder="Enter your username" maxlength="30">
+        <small>Owners are users whose name includes Yo_kev.</small>
+        <button class="btn btn-primary" onclick="authenticate()">Launch Game</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="homeScreen" class="screen">
+    <header class="topbar">
+      <div class="brand-mini">⚔ Pixel Quest</div>
+      <div class="user-panel">
+        <span id="currentUserLabel">Guest</span>
+        <button class="btn btn-small btn-secondary" onclick="logout()">Logout</button>
+      </div>
+    </header>
+
+    <nav class="nav">
+      <button class="nav-btn active" onclick="showScreen('homeScreen')">🏠 Home</button>
+      <button class="nav-btn" onclick="showScreen('gameScreen')">⚔ Battle</button>
+      <button class="nav-btn" onclick="showScreen('inventoryScreen')">🎒 Inventory</button>
+      <button class="nav-btn" onclick="showScreen('charactersScreen')">👤 Characters</button>
+      <button class="nav-btn" onclick="showScreen('shopScreen')">🏪 Shop</button>
+    </nav>
+
+    <main class="page-content">
+      <section class="welcome-panel panel">
+        <h2>Welcome, <span id="playerName">Adventurer</span>!</h2>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-value" id="homeCoins">50</span>
+            <span class="stat-label">💎 Coins</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value" id="homeLevel">1</span>
+            <span class="stat-label">⭐ Level</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value" id="homeBossesDefeated">0</span>
+            <span class="stat-label">☠️ Bosses</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value" id="homeCharactersOwned">1</span>
+            <span class="stat-label">👤 Heroes</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h3>Adventure Features</h3>
+        <div class="feature-grid">
+          <article class="feature-box">
+            <div class="feature-icon">⚔</div>
+            <h4>Boss Battles</h4>
+            <p>Fight stronger enemies and claim gold.</p>
+          </article>
+          <article class="feature-box">
+            <div class="feature-icon">🛡️</div>
+            <h4>Armor & Gear</h4>
+            <p>Craft your defense and survive the arena.</p>
+          </article>
+          <article class="feature-box">
+            <div class="feature-icon">🎒</div>
+            <h4>Inventory Manager</h4>
+            <p>Keep track of your weapons and upgrades.</p>
+          </article>
+          <article class="feature-box">
+            <div class="feature-icon">👑</div>
+            <h4>Owner Control</h4>
+            <p>Users with Yo_kev in their name unlock creator tools.</p>
+          </article>
+        </div>
+      </section>
+
+      <div class="action-row">
+        <button class="btn btn-primary large" onclick="showScreen('gameScreen')">⚔ Start Battle</button>
+      </div>
+    </main>
+  </div>
+
+  <div id="gameScreen" class="screen">
+    <div class="section-header">
+      <button class="btn btn-secondary" onclick="showScreen('homeScreen')">← Back</button>
+      <h1>Battle Arena</h1>
+    </div>
+    <iframe src="game.html" title="Game Arena" class="game-frame"></iframe>
+  </div>
+
+  <div id="inventoryScreen" class="screen">
+    <div class="section-header">
+      <button class="btn btn-secondary" onclick="showScreen('homeScreen')">← Back</button>
+      <h1>Inventory</h1>
+    </div>
+
+    <main class="page-content narrow-content">
+      <section class="panel">
+        <h2>Weapons</h2>
+        <div id="weaponsList" class="item-grid"></div>
+      </section>
+
+      <section class="panel">
+        <h2>Armor</h2>
+        <div id="armorList" class="item-grid"></div>
+      </section>
+    </main>
+  </div>
+
+  <div id="charactersScreen" class="screen">
+    <div class="section-header">
+      <button class="btn btn-secondary" onclick="showScreen('homeScreen')">← Back</button>
+      <h1>Heroes</h1>
+    </div>
+
+    <main class="page-content narrow-content">
+      <section class="panel">
+        <h2>Unlocked Characters</h2>
+        <div id="charactersList" class="character-grid"></div>
+      </section>
+
+      <section id="ownerSection" class="panel owner-panel" style="display: none;">
+        <h2>Owner Tools</h2>
+        <p>Create your own hero for the world.</p>
+        <button class="btn btn-primary" onclick="showAddCharacterForm()">Create Character</button>
+
+        <div id="addCharacterForm" class="add-character" style="display: none;">
+          <h3>Add New Hero</h3>
+          <input id="newCharName" type="text" placeholder="Name" maxlength="20">
+          <input id="newCharEmoji" type="text" placeholder="Emoji" maxlength="3">
+          <input id="newCharHealth" type="number" min="50" max="300" value="120">
+          <textarea id="newCharDesc" rows="3" placeholder="Short description"></textarea>
+          <div class="inline-actions">
+            <button class="btn btn-primary" onclick="addCharacter()">Save</button>
+            <button class="btn btn-secondary" onclick="hideAddCharacterForm()">Cancel</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="shopScreen" class="screen">
+    <div class="section-header">
+      <button class="btn btn-secondary" onclick="showScreen('homeScreen')">← Back</button>
+      <h1>Premium Shop</h1>
+    </div>
+
+    <main class="page-content narrow-content">
+      <section class="panel shop-panel">
+        <h2>Coins: <span id="shopCoins">50</span></h2>
+
+        <div class="shop-section">
+          <h3>Weapons</h3>
+          <div id="shopWeapons" class="item-grid"></div>
+        </div>
+
+        <div class="shop-section">
+          <h3>Armor</h3>
+          <div id="shopArmor" class="item-grid"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
