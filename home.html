@@ -1,0 +1,190 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pixel Quest - Home</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="authScreen" class="screen active">
+    <div class="auth-container">
+      <h1>⚔ Pixel Quest</h1>
+      <p class="tagline">An Epic Pixel Adventure</p>
+      
+      <div class="auth-form">
+        <h2>Create Your Account</h2>
+        <input type="text" id="usernameInput" placeholder="Username (must contain 'Yo_kev')" maxlength="30">
+        <small style="color: #94a3b8; margin-bottom: 10px;">Username must include 'Yo_kev' to become the owner!</small>
+        <button onclick="authenticate()" class="btn-primary">Start Game</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="homeScreen" class="screen">
+    <header class="game-header">
+      <h1>⚔ Pixel Quest</h1>
+      <div class="user-info">
+        <span id="currentUser"></span>
+        <button onclick="logout()" class="btn-small">Logout</button>
+      </div>
+    </header>
+
+    <nav class="main-nav">
+      <button onclick="showScreen('homeScreen')" class="nav-btn active">🏠 Home</button>
+      <button onclick="showScreen('gameScreen')" class="nav-btn">⚔ Battle</button>
+      <button onclick="showScreen('inventoryScreen')" class="nav-btn">🎒 Inventory</button>
+      <button onclick="showScreen('charactersScreen')" class="nav-btn">👤 Characters</button>
+      <button onclick="showScreen('shopScreen')" class="nav-btn">🏪 Shop</button>
+    </nav>
+
+    <main class="content">
+      <div class="welcome-section">
+        <h2>Welcome, <span id="playerName"></span>!</h2>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="homeCoins">50</div>
+            <div class="stat-label">💎 Coins</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="homeLevel">1</div>
+            <div class="stat-label">⭐ Level</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="homeBossesDefeated">0</div>
+            <div class="stat-label">☠️ Bosses Defeated</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="homeCharactersOwned">1</div>
+            <div class="stat-label">👤 Characters</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="features-section">
+        <h3>Game Features</h3>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">⚔</div>
+            <h4>Epic Battles</h4>
+            <p>Fight bosses and earn coins and rewards</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🛒</div>
+            <h4>Weapon Shop</h4>
+            <p>Upgrade your weapons and armor</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">👤</div>
+            <h4>Characters</h4>
+            <p>Unlock and switch between unique heroes</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🎒</div>
+            <h4>Inventory</h4>
+            <p>Manage your weapons and equipment</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="action-buttons">
+        <button onclick="showScreen('gameScreen')" class="btn-primary large">⚔ Start Battle</button>
+      </div>
+    </main>
+  </div>
+
+  <div id="gameScreen" class="screen">
+    <button onclick="showScreen('homeScreen')" class="btn-back">← Back to Home</button>
+    <iframe src="game.html" style="width: 100%; height: 100vh; border: none;"></iframe>
+  </div>
+
+  <div id="inventoryScreen" class="screen">
+    <header class="game-header">
+      <h1>🎒 Inventory</h1>
+      <button onclick="showScreen('homeScreen')" class="btn-back">← Back</button>
+    </header>
+
+    <main class="content">
+      <div class="inventory-container">
+        <section class="inventory-section">
+          <h2>⚔ Weapons</h2>
+          <div id="weaponsList" class="items-grid">
+            <!-- Populated by JS -->
+          </div>
+        </section>
+
+        <section class="inventory-section">
+          <h2>🛡️ Armor</h2>
+          <div id="armorList" class="items-grid">
+            <!-- Populated by JS -->
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div id="charactersScreen" class="screen">
+    <header class="game-header">
+      <h1>👤 Characters</h1>
+      <button onclick="showScreen('homeScreen')" class="btn-back">← Back</button>
+    </header>
+
+    <main class="content">
+      <div class="characters-container">
+        <h2>Your Characters</h2>
+        <div id="charactersList" class="characters-grid">
+          <!-- Populated by JS -->
+        </div>
+
+        <div class="owner-section" id="ownerSection" style="display: none;">
+          <h2>👑 Owner Controls</h2>
+          <p>You are the owner! You can create new content.</p>
+          <button onclick="showAddCharacterForm()" class="btn-primary">➕ Create New Character</button>
+          
+          <div id="addCharacterForm" class="form-container" style="display: none;">
+            <h3>Create New Character</h3>
+            <input type="text" id="newCharName" placeholder="Character Name" maxlength="20">
+            <input type="text" id="newCharEmoji" placeholder="Emoji (e.g., 🧙)" maxlength="2">
+            <input type="number" id="newCharHealth" placeholder="Health" value="100" min="50" max="300">
+            <textarea id="newCharDesc" placeholder="Description"></textarea>
+            <button onclick="addCharacter()" class="btn-primary">Create</button>
+            <button onclick="hideAddCharacterForm()" class="btn-secondary">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="shopScreen" class="screen">
+    <header class="game-header">
+      <h1>🏪 Shop</h1>
+      <button onclick="showScreen('homeScreen')" class="btn-back">← Back</button>
+    </header>
+
+    <main class="content">
+      <div class="shop-container">
+        <div class="player-coins">
+          <h3>💎 Your Coins: <span id="shopCoins">50</span></h3>
+        </div>
+
+        <section class="shop-section">
+          <h2>⚔ Weapons</h2>
+          <div id="shopWeapons" class="shop-grid">
+            <!-- Populated by JS -->
+          </div>
+        </section>
+
+        <section class="shop-section">
+          <h2>🛡️ Armor</h2>
+          <div id="shopArmor" class="shop-grid">
+            <!-- Populated by JS -->
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
